@@ -1,0 +1,24 @@
+<div class="head">
+  <h1>Settings</h1>
+  <p>Account details of the person who is signed in.</p>
+</div>
+
+<div class="card">
+  <h2>Account</h2>
+  <table>
+    <tbody>
+      <tr>
+        <td style="width: 180px; color: #7B76A0;">Name</td>
+        <td>{{ user()?.name }}</td>
+      </tr>
+      <tr>
+        <td style="color: #7B76A0;">Email</td>
+        <td>{{ user()?.email }}</td>
+      </tr>
+      <tr>
+        <td style="color: #7B76A0;">Session</td>
+        <td>Stored in localStorage - clearing it logs you out</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

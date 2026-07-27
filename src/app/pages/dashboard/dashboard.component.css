@@ -1,0 +1,54 @@
+/* Styles shared by the pages inside the shell.
+   The same file is used by dashboard / attendance / settings, so each page
+   stays self-contained and is easy to copy when you add a new one. */
+
+:host { display: block; }
+* { box-sizing: border-box; }
+
+.head { margin-bottom: 20px; }
+.head h1 { margin: 0; font-size: 22px; font-weight: 700; color: #1F0A5E; }
+.head p  { margin: 6px 0 0; font-size: 14px; color: #5A5580; }
+
+.card {
+  background: #fff;
+  border: 1px solid #ECEAF4;
+  border-radius: 14px;
+  padding: 20px;
+}
+
+.card h2 { margin: 0 0 14px; font-size: 15px; font-weight: 600; color: #1F0A5E; }
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.stat .label { font-size: 13px; color: #5A5580; }
+.stat .value { font-size: 28px; font-weight: 700; margin-top: 6px; color: #1F0A5E; }
+.stat .trend { font-size: 12px; margin-top: 8px; color: #17A673; }
+.stat .trend.down { color: #D63B3B; }
+
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+
+th {
+  text-align: left; padding: 10px 12px; font-weight: 600;
+  font-size: 12px; letter-spacing: .04em; text-transform: uppercase;
+  color: #7B76A0; border-bottom: 1px solid #ECEAF4;
+}
+
+td { padding: 13px 12px; border-bottom: 1px solid #F3F1F9; color: #2C2350; }
+tr:last-child td { border-bottom: 0; }
+
+.pill { display: inline-block; padding: 4px 11px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+.pill.in  { background: #E6F7F0; color: #17A673; }
+.pill.out { background: #FDECEC; color: #D63B3B; }
+
+.empty { display: grid; place-items: center; gap: 10px; padding: 60px 20px; text-align: center; color: #5A5580; }
+.empty svg { width: 46px; height: 46px; color: #B9B2E0; }
+.empty h2  { margin: 0; font-size: 17px; color: #1F0A5E; }
+.empty p   { margin: 0; font-size: 14px; max-width: 400px; line-height: 1.6; }
+.empty code { background: #F2EFFC; color: #4A10C8; padding: 2px 7px; border-radius: 6px; font-size: 13px; }
+
+.scroll { overflow-x: auto; }

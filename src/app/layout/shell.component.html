@@ -1,0 +1,74 @@
+<div class="shell" [class.menu-open]="menuOpen()">
+
+  <!-- ============ sidebar ============ -->
+  <aside class="sidebar">
+    <img class="logo" src="assets/logo.svg" alt="Company logo" />
+
+    <nav class="nav">
+      <a *ngFor="let item of nav"
+         class="nav-item"
+         [routerLink]="item.path"
+         routerLinkActive="active"
+         (click)="closeMenu()">
+
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <ng-container [ngSwitch]="item.icon">
+            <ng-container *ngSwitchCase="'grid'">
+              <rect x="3" y="3" width="7" height="7" rx="2" />
+              <rect x="14" y="3" width="7" height="7" rx="2" />
+              <rect x="3" y="14" width="7" height="7" rx="2" />
+              <rect x="14" y="14" width="7" height="7" rx="2" />
+            </ng-container>
+            <ng-container *ngSwitchCase="'users'">
+              <circle cx="9" cy="8" r="3.4" />
+              <path d="M2.5 20a6.5 6.5 0 0 1 13 0" />
+              <path d="M16.5 5.2a3.4 3.4 0 0 1 0 6.6" />
+              <path d="M18 14.6a6.5 6.5 0 0 1 3.5 5.4" />
+            </ng-container>
+            <ng-container *ngSwitchCase="'gear'">
+              <circle cx="12" cy="12" r="3.2" />
+              <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2 2 2 0 1 1-4 0 1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 3 15a2 2 0 1 1 0-4 1.7 1.7 0 0 0 1.2-2.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.7 1.7 0 0 0 10 4.1a2 2 0 1 1 4 0 1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1A1.7 1.7 0 0 0 21 11a2 2 0 1 1 0 4 1.7 1.7 0 0 0-1.6 0Z" />
+            </ng-container>
+          </ng-container>
+        </svg>
+
+        <span>{{ item.label }}</span>
+      </a>
+    </nav>
+
+    <button class="logout" type="button" (click)="logout()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 20H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h8" />
+        <path d="M17 15l4-3-4-3" />
+        <path d="M21 12H10" />
+      </svg>
+      <span>Log out</span>
+    </button>
+  </aside>
+
+  <!-- tap outside the drawer to close it, small screens only -->
+  <div class="scrim" (click)="closeMenu()"></div>
+
+  <!-- ============ main area ============ -->
+  <div class="main">
+    <header class="topbar">
+      <button class="burger" type="button" (click)="toggleMenu()" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+
+      <div class="who">
+        <div class="avatar">{{ initials() }}</div>
+        <div class="who-text">
+          <strong>{{ user()?.name }}</strong>
+          <small>{{ user()?.email }}</small>
+        </div>
+      </div>
+    </header>
+
+    <main class="content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

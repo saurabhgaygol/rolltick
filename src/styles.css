@@ -1,0 +1,5 @@
+/* global reset - the login screen needs the page to have a real height */
+html, body {
+  height: 100%;
+  margin: 0;
+}

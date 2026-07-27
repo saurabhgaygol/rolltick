@@ -1,0 +1,918 @@
+/* =====================================================================
+   Login screen
+   ---------------------------------------------------------------------
+   The design was drawn on a 3786 x 2054 artboard. Two rules keep it
+   accurate at every screen size:
+
+   1. Positions and sizes are percentages of that artboard.
+   2. Font sizes are multiples of --u, which the component sets to
+      1% of the artwork width (see updateScale() in the .ts file).
+   ===================================================================== */
+
+:host {
+  display: block;
+  min-height: 100vh;
+
+  /* colours taken from the design */
+  --ink: #1F0A5E;
+  /* heading */
+  --ink-2: #241484;
+  /* body text */
+  --ink-3: #180C68;
+  /* input text and icons */
+  --muted: #4A4DA6;
+  /* placeholder */
+  --link: #4A10C8;
+  --line: #EFF0F1;
+  /* divider */
+  --btn-a: #6533DE;
+  /* button gradient, left */
+  --btn-b: #7A50E4;
+  /* button gradient, right */
+
+  --gap: 20px;
+  /* white space around the artwork */
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* ---------------------------------------------------------------------
+   1. PAGE + STAGE
+   ------------------------------------------------------------------ */
+
+.page {
+  min-height: 100vh;
+  background: #fff;
+  padding: 0px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.stage {
+  --u: 17px;
+  position: relative;
+
+  /* Screen ki width ke hisab se */
+  width: 98%;
+
+  /* Height same rahegi */
+  max-height: calc(100vh - 40px);
+
+  aspect-ratio: 3786 / 2054;
+
+  animation: fadeIn .6s ease both;
+}
+
+
+
+@keyframes fadeIn {
+  from {
+    opacity: 0
+  }
+
+  to {
+    opacity: 1
+  }
+}
+
+.bg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* ---------------------------------------------------------------------
+   2. LOGO SLOT
+   Sits exactly where the original logo was. Change only the image file,
+   not these numbers.
+   ------------------------------------------------------------------ */
+
+.brand {
+  position: absolute;
+  left: 4.252%;
+  top: 5.598%;
+  width: 8.003%;
+  height: auto;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* ---------------------------------------------------------------------
+   3. ANIMATED LIGHTS
+   Every light is centred on its own x / y point, so the .ts file only
+   stores the middle of each device.
+   ------------------------------------------------------------------ */
+
+.fx {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  /* lights add on top instead of covering */
+}
+
+.fx>* {
+  position: absolute;
+  transform: translate(-50%, -50%);
+}
+
+/* colour of a light, written as "r,g,b" so any opacity can be used */
+.tone-green {
+  --c: 80, 235, 160;
+}
+
+.tone-purple {
+  --c: 150, 120, 255;
+}
+
+.tone-blue {
+  --c: 120, 200, 255;
+}
+
+/* --- blinking dot (LEDs, connector dots) --- */
+.glow {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle,
+      rgba(var(--c), .75) 0%,
+      rgba(var(--c), .30) 36%,
+      rgba(var(--c), 0) 70%);
+  animation: pulse 3.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: .20;
+    transform: translate(-50%, -50%) scale(.8);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.3);
+  }
+}
+
+/* --- expanding signal ring --- */
+.ring {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: max(1px, calc(var(--u) * .055)) solid rgba(var(--c), .55);
+  animation: ripple 3.6s ease-out infinite;
+}
+
+@keyframes ripple {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(.25);
+  }
+
+  18% {
+    opacity: .6;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.75);
+  }
+}
+
+/* --- soft halo, only the brightness changes (badges, screens) --- */
+.halo {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle,
+      rgba(var(--c), .55) 0%,
+      rgba(var(--c), .16) 40%,
+      rgba(var(--c), 0) 72%);
+  animation: breathe 4s ease-in-out infinite;
+}
+
+/* --- wide flat light strip --- */
+.bar {
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center,
+      rgba(var(--c), .65) 0%,
+      rgba(var(--c), .18) 45%,
+      rgba(var(--c), 0) 72%);
+  animation: breathe 3s ease-in-out infinite;
+}
+
+@keyframes breathe {
+
+  0%,
+  100% {
+    opacity: .22
+  }
+
+  50% {
+    opacity: 1
+  }
+}
+
+/* --- big faint background light --- */
+.aura {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(var(--c), .16) 0%, rgba(var(--c), 0) 68%);
+  animation: drift 19s ease-in-out infinite;
+}
+
+@keyframes drift {
+
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  50% {
+    transform: translate(-48%, -54%) scale(1.14);
+  }
+}
+
+/* --- floating dust --- */
+.dust {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: rgba(198, 186, 255, .9);
+  animation: rise 14s linear infinite;
+}
+
+@keyframes rise {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) translateY(max(8px, calc(var(--u) * 1.2)));
+  }
+
+  14% {
+    opacity: .55;
+  }
+
+  82% {
+    opacity: .30;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) translateY(calc(max(60px, var(--u) * 8) * -1));
+  }
+}
+
+/* --- scan line inside the face recognition screen --- */
+.scan {
+  left: 40.061%;
+  top: 38.402%;
+  width: 4.754%;
+  height: 13.145%;
+  transform: none;
+  /* positioned by its corner, not its centre */
+  overflow: hidden;
+  border-radius: .4%;
+}
+
+.scan::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 20%;
+  background: linear-gradient(180deg,
+      rgba(130, 205, 255, 0) 0%,
+      rgba(130, 205, 255, .42) 50%,
+      rgba(130, 205, 255, 0) 100%);
+  animation: sweep 3.4s linear infinite;
+}
+
+@keyframes sweep {
+  from {
+    top: -20%
+  }
+
+  to {
+    top: 100%
+  }
+}
+
+/* --- slow light sweep over the whole panel --- */
+.sheen {
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  /* stops above the curved notch at the bottom */
+  transform: none;
+  overflow: hidden;
+  border-radius: calc(var(--u) * 2.11) calc(var(--u) * 2.11) 0 0;
+}
+
+.sheen::after {
+  content: '';
+  position: absolute;
+  top: -25%;
+  bottom: -25%;
+  left: -25%;
+  width: 20%;
+  background: linear-gradient(90deg,
+      rgba(190, 175, 255, 0),
+      rgba(190, 175, 255, .085),
+      rgba(190, 175, 255, 0));
+  transform: skewX(-14deg);
+  animation: sheen 11s ease-in-out infinite;
+}
+
+@keyframes sheen {
+  0% {
+    left: -25%
+  }
+
+  45%,
+  100% {
+    left: 115%
+  }
+}
+
+/* ---------------------------------------------------------------------
+   4. LOGIN CARD
+   The card is placed as a % of the artwork; everything inside it is a %
+   of the card. So the card can be moved without touching its contents.
+   ------------------------------------------------------------------ */
+
+.card {
+  position: absolute;
+  left: 70.965%;
+  top: 16.943%;
+  width: 23.281%;
+  height: 64.411%;
+  background: #fff;
+  border-radius: calc(var(--u) * 1.7697);
+  animation: floaty 6.5s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes floaty {
+
+  0%,
+  100% {
+    transform: translateY(max(4px, calc(var(--u) * .45)));
+  }
+
+  50% {
+    transform: translateY(calc(max(4px, var(--u) * .45) * -1));
+  }
+}
+
+.title {
+  position: absolute;
+  left: 8.744%;
+  top: 7.407%;
+  margin: 0;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 700;
+  font-size: calc(var(--u) * 2.43);
+  line-height: 1;
+  letter-spacing: -.035em;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.subtitle {
+  position: absolute;
+  left: 8.945%;
+  top: 17.006%;
+  margin: 0;
+  font-size: calc(var(--u) * 1.0564);
+  line-height: 1;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+/* --- input boxes --- */
+.field {
+  position: absolute;
+  left: 8.744%;
+  width: 82.312%;
+  height: 11.414%;
+  border: max(1px, calc(var(--u) * .053)) solid #D9DCE3;
+  border-radius: calc(var(--u) * .6862);
+  background: #fff;
+  display: flex;
+  align-items: center;
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+
+.field.email {
+  top: 26.228%;
+}
+
+.field.pass {
+  top: 41.497%;
+}
+
+.field:focus-within {
+  border-color: #7A50E4;
+  box-shadow: 0 0 0 max(2px, calc(var(--u) * .0812)) rgba(122, 80, 228, .14);
+}
+
+.field.invalid {
+  border-color: #E05252;
+}
+
+.field .lead {
+  position: absolute;
+  left: 5.98%;
+  width: 5.01%;
+  display: flex;
+  align-items: center;
+  color: var(--ink-3);
+  pointer-events: none;
+}
+
+.field .trail {
+  position: absolute;
+  right: 6.72%;
+  width: 4.40%;
+  display: flex;
+  align-items: center;
+  color: var(--ink-3);
+}
+
+.field .lead svg,
+.field .trail svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.field button.trail {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.field input {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  padding: 0 12.2% 0 16.97%;
+  font-family: inherit;
+  font-size: calc(var(--u) * 1.1095);
+  color: var(--ink-3);
+}
+
+.field input::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+
+/* --- error message --- */
+.error {
+  position: absolute;
+  left: 8.945%;
+  top: 53.4%;
+  margin: 0;
+  font-size: calc(var(--u) * .85);
+  line-height: 1;
+  color: #D63B3B;
+  white-space: nowrap;
+}
+
+/* --- terms line --- */
+.terms {
+  position: absolute;
+  left: 8.945%;
+  top: 58.276%;
+  margin: 0;
+  font-size: calc(var(--u) * .9503);
+  line-height: 1;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+.terms a,
+.signup a {
+  color: var(--link);
+  text-decoration: underline;
+  text-underline-offset: .18em;
+}
+
+/* --- login button --- */
+.cta {
+
+  position: absolute;
+  left: 25.643%;
+  top: 67.120%;
+  width: 46.432%;
+  height: 10.355%;
+  border: 0;
+  border-radius: 20px;
+  cursor: pointer;
+  background: linear-gradient(90deg, var(--btn-a), var(--btn-b));
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 5.7%;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: calc(var(--u) * 1.1625);
+  letter-spacing: -.01em;
+  transition: filter .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+
+.cta:hover:not(:disabled) {
+  filter: brightness(1.07);
+  box-shadow: 0 calc(var(--u) * .38) calc(var(--u) * 1.19) rgba(101, 51, 222, .38);
+}
+
+.cta:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.cta:disabled {
+  opacity: .7;
+  cursor: default;
+}
+
+.cta svg {
+  width: calc(var(--u) * 1.6388);
+  height: auto;
+  display: block;
+  flex: none;
+}
+
+/* --- forget password --- */
+.forgot {
+  position: absolute;
+  right: 9.045%;
+  top: 67.120%;
+  height: 10.355%;
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * .6343);
+  font-size: calc(var(--u) * .8454);
+  color: var(--ink-3);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.forgot svg {
+  width: calc(var(--u) * .7393);
+  height: auto;
+  color: #5B21D6;
+  display: block;
+  flex: none;
+}
+
+.forgot:hover {
+  color: var(--link);
+}
+
+/* --- divider + sign up line --- */
+.rule {
+  position: absolute;
+  left: 0;
+  top: 84.505%;
+  width: 100%;
+  height: 1px;
+  background: var(--line);
+}
+
+.signup {
+  position: absolute;
+  left: 0;
+  top: 90.174%;
+  width: 100%;
+  margin: 0;
+  text-align: center;
+  font-size: calc(var(--u) * .9503);
+  line-height: 1;
+  color: var(--ink-3);
+}
+
+/* ---------------------------------------------------------------------
+   5. FOOTER HOTSPOTS
+   The footer text is part of the picture, so invisible links are placed
+   exactly on top of it.
+   ------------------------------------------------------------------ */
+
+.hot {
+  position: absolute;
+  display: block;
+  top: 91.529%;
+  height: 3.408%;
+  border-radius: 3px;
+}
+
+.hot:hover {
+  background: rgba(255, 255, 255, .10);
+}
+
+.hot.twitter {
+  left: 45.245%;
+  width: 3.064%;
+}
+
+.hot.instagram {
+  left: 50.766%;
+  width: 4.253%;
+}
+
+.hot.privacy {
+  left: 81.325%;
+  width: 3.117%;
+}
+
+.hot.tos {
+  left: 87.612%;
+  width: 7.554%;
+}
+
+.mfoot {
+  display: none;
+}
+
+/* only used in the compact layout below */
+
+/* ---------------------------------------------------------------------
+   6. COMPACT LAYOUT
+   On narrow windows (and very short ones) the illustration becomes too
+   small to read, so we drop it and put the card straight on the brand
+   colour instead.
+   ------------------------------------------------------------------ */
+
+@keyframes floatyPx {
+
+  0%,
+  100% {
+    transform: translateY(5px);
+  }
+
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@media (max-width: 900px),
+(max-height: 600px) {
+
+  .page {
+    display: block;
+    min-height: 0;
+  }
+
+  .stage {
+    width: 100%;
+    aspect-ratio: auto;
+    min-height: calc(100vh - var(--gap) * 2);
+    min-height: calc(100dvh - var(--gap) * 2);
+    border-radius: clamp(16px, 3.4vw, 26px);
+    overflow: hidden;
+
+    /* same purple as the artwork, rebuilt with gradients */
+    background:
+      radial-gradient(120% 80% at 16% 6%, #351172 0%, rgba(53, 17, 114, 0) 55%),
+      radial-gradient(95% 70% at 96% 94%, #3B1080 0%, rgba(59, 16, 128, 0) 60%),
+      linear-gradient(165deg, #250B60 0%, #1A0645 52%, #210957 100%);
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 98px 18px 80px;
+  }
+
+  .bg,
+  .hot {
+    display: none;
+  }
+
+  /* keep only the calm lights, drop the ones tied to the devices */
+  .fx {
+    position: absolute;
+    inset: 0;
+  }
+
+  .fx .glow,
+  .fx .ring,
+  .fx .bar,
+  .fx .scan,
+  .fx .halo,
+  .fx .sheen {
+    display: none;
+  }
+
+  .fx .aura {
+    width: 52% !important;
+  }
+
+  .fx .dust {
+    width: 2px !important;
+  }
+
+  .brand {
+    top: 26px;
+    left: 24px;
+    width: clamp(104px, 26vw, 138px);
+  }
+
+  .card {
+    position: relative;
+    left: auto;
+    top: auto;
+    width: 100%;
+    max-width: 420px;
+    height: auto;
+    border-radius: 20px;
+    padding: 34px 26px 28px;
+    box-shadow: 0 26px 60px rgba(0, 0, 0, .38);
+    animation: floatyPx 7s ease-in-out infinite;
+  }
+
+  .title,
+  .subtitle,
+  .error,
+  .terms,
+  .rule,
+  .signup {
+    position: static;
+    white-space: normal;
+  }
+
+  .error {
+    font-size: 13px;
+    margin-top: 14px;
+  }
+
+  .title {
+    font-size: clamp(30px, 8.4vw, 38px);
+    letter-spacing: -.02em;
+  }
+
+  .subtitle {
+    font-size: clamp(13px, 3.5vw, 15px);
+    margin-top: 9px;
+  }
+
+  .field {
+    position: static;
+    width: 100%;
+    height: 56px;
+    border-radius: 12px;
+    border-width: 1px;
+    margin-top: 14px;
+  }
+
+  .field.email {
+    margin-top: 26px;
+  }
+
+  .field .lead {
+    left: 20px;
+    width: 19px;
+  }
+
+  .field .trail {
+    right: 20px;
+    width: 17px;
+  }
+
+  .field input {
+    font-size: 15px;
+    padding: 0 52px 0 56px;
+  }
+
+  .field:focus-within {
+    box-shadow: 0 0 0 3px rgba(122, 80, 228, .16);
+  }
+
+  .terms {
+    font-size: 13px;
+    margin-top: 22px;
+  }
+
+  .cta {
+    position: static;
+    width: 100%;
+    height: 54px;
+    border-radius: 12px;
+    justify-content: center;
+    gap: 14px;
+    font-size: 16px;
+    margin-top: 18px;
+    padding: 0 20px;
+  }
+
+  .cta svg {
+    width: 24px;
+  }
+
+  .cta:hover:not(:disabled) {
+    box-shadow: 0 10px 26px rgba(101, 51, 222, .42);
+  }
+
+  .forgot {
+    position: static;
+    height: auto;
+    justify-content: center;
+    font-size: 13px;
+    margin-top: 16px;
+  }
+
+  .forgot svg {
+    width: 12px;
+  }
+
+  .rule {
+    position: static;
+    margin: 24px 0 0;
+  }
+
+  .signup {
+    position: static;
+    font-size: 13px;
+    margin-top: 20px;
+  }
+
+  .mfoot {
+    display: block;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 22px;
+    padding: 0 16px;
+    text-align: center;
+    color: rgba(214, 206, 255, .60);
+    font-size: 12px;
+    line-height: 1.9;
+  }
+
+  .mfoot a {
+    color: rgba(214, 206, 255, .60);
+    text-decoration: none;
+  }
+
+  .mfoot a:hover {
+    color: #fff;
+  }
+
+  .mfoot i {
+    font-style: normal;
+    opacity: .4;
+    margin: 0 7px;
+  }
+}
+
+/* very short windows - tighten the spacing so nothing scrolls */
+@media (max-height: 640px) {
+  .stage {
+    padding: 80px 18px 64px;
+  }
+
+  .brand {
+    top: 20px;
+    left: 20px;
+  }
+
+  .mfoot {
+    bottom: 16px;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   7. USERS WHO TURNED ANIMATIONS OFF
+   ------------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .stage,
+  .card,
+  .glow,
+  .ring,
+  .bar,
+  .aura,
+  .halo,
+  .dust,
+  .scan::after,
+  .sheen::after {
+    animation: none !important;
+  }
+
+  .dust {
+    opacity: .3;
+  }
+}
