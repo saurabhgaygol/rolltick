@@ -1,0 +1,691 @@
+/* =====================================================================
+   Attendance report
+   Full-width table. Filters live in a drawer that slides in from the
+   right only when you ask for it, and what is currently filtered is
+   shown as removable chips under the title.
+   ===================================================================== */
+
+:host {
+  display: block;
+  position: relative;
+
+  --brand: #6533DE;
+  --brand-2: #7A50E4;
+  --ink: #1F0A5E;
+  --ink-2: #5A5580;
+  --line: #ECEAF4;
+  --line-soft: #F3F1F9;
+  --head-bg: #FAF9FE;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* ------------------------------- header ------------------------------ */
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.head h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.head p {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: var(--ink-2);
+}
+
+.head-actions {
+  display: flex;
+  gap: 10px;
+  flex: none;
+}
+
+/* ------------------------------- buttons ----------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  height: 40px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: filter .16s ease, box-shadow .16s ease, background .16s ease;
+}
+
+.btn svg {
+  width: 17px;
+  height: 17px;
+  flex: none;
+}
+
+.btn.primary {
+  background: linear-gradient(90deg, var(--brand), var(--brand-2));
+  color: #fff;
+}
+
+.btn.primary:hover {
+  filter: brightness(1.06);
+  box-shadow: 0 8px 20px rgba(101, 51, 222, .32);
+}
+
+.btn.ghost {
+  background: #fff;
+  border: 1px solid var(--line);
+  color: var(--ink);
+}
+
+.btn.ghost:hover:not(:disabled) {
+  background: var(--head-bg);
+}
+
+.btn.ghost:disabled {
+  opacity: .45;
+  cursor: default;
+}
+
+/* little count on the Filters button */
+.badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--brand);
+  color: #fff;
+  font-size: 11.5px;
+  font-style: normal;
+  font-weight: 700;
+}
+
+/* ------------------------- active filter chips ----------------------- */
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 30px;
+  padding: 0 6px 0 11px;
+  border-radius: 999px;
+  background: #F2EFFC;
+  border: 1px solid #E2DBFA;
+  font-size: 12.5px;
+  color: var(--ink);
+}
+
+.chip em {
+  font-style: normal;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+  color: var(--brand);
+}
+
+.chip button {
+  width: 19px;
+  height: 19px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(101, 51, 222, .12);
+  color: var(--brand);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.chip button:hover {
+  background: rgba(101, 51, 222, .24);
+}
+
+.chip-clear {
+  border: 0;
+  background: none;
+  padding: 0 4px;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--ink-2);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.chip-clear:hover {
+  color: var(--brand);
+}
+
+/* ----------------------------- table card ---------------------------- */
+
+.table-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.table-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.showing {
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.page-size {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.page-size select {
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid #DCD9EA;
+  border-radius: 8px;
+  background: #fff;
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink);
+  cursor: pointer;
+  outline: 0;
+}
+
+
+/* the scroller - 25 columns will not fit on any screen.
+   The bars themselves are hidden; scrolling still works with the wheel,
+   shift + wheel, trackpad and touch. */
+.scroll {
+  overflow: auto;
+  max-height: calc(100vh - 300px);
+  scrollbar-width: thin;
+  scrollbar-color: #CFC8E8 transparent;
+}
+
+/* slim, quiet scrollbars instead of the chunky default ones */
+.scroll::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+
+.scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scroll::-webkit-scrollbar-thumb {
+  background: #D3CCEA;
+  border: 2px solid #fff;
+  border-radius: 999px;
+}
+
+.scroll::-webkit-scrollbar-thumb:hover {
+  background: #B7ACDF;
+}
+
+.scroll::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13.5px;
+}
+
+th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: var(--head-bg);
+  text-align: left;
+  white-space: nowrap;
+  padding: 11px 14px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: .045em;
+  text-transform: uppercase;
+  color: #7B76A0;
+  border-bottom: 1px solid var(--line);
+}
+
+td {
+  padding: 12px 14px;
+  white-space: nowrap;
+  color: #2C2350;
+  background: #fff;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+tbody tr:hover td {
+  background: #FBFAFF;
+}
+
+td.strong {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+td.num {
+  color: #7B76A0;
+}
+
+td.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12.5px;
+}
+
+/* first column stays put while you scroll sideways */
+.stick-l {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  box-shadow: 1px 0 0 var(--line);
+}
+
+th.stick-l {
+  z-index: 4;
+}
+
+/* action column stays put on the right */
+.stick-r {
+  position: sticky;
+  right: 0;
+  z-index: 2;
+  text-align: center;
+  box-shadow: -1px 0 0 var(--line);
+}
+
+th.stick-r {
+  z-index: 4;
+}
+
+.icon {
+  width: 32px;
+  height: 32px;
+  display: inline-grid;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  background: #F2EFFC;
+  color: var(--brand);
+  cursor: pointer;
+  transition: background .16s ease;
+}
+
+.icon svg {
+  width: 17px;
+  height: 17px;
+}
+
+.icon:hover {
+  background: #E6DFFA;
+}
+
+.no-rows {
+  padding: 44px 16px;
+  text-align: center;
+  color: var(--ink-2);
+  white-space: normal;
+}
+
+/* status pills */
+.pill {
+  display: inline-block;
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.pill.ok {
+  background: #E6F7F0;
+  color: #17A673;
+}
+
+.pill.bad {
+  background: #FDECEC;
+  color: #D63B3B;
+}
+
+.pill.warn {
+  background: #FFF4E3;
+  color: #B8760B;
+}
+
+.pill.neutral {
+  background: #F1EFF8;
+  color: #6C6790;
+}
+
+/* ------------------------------ pager -------------------------------- */
+
+.pager {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  /* equal sides keep the search dead centre */
+  align-items: center;
+  gap: 14px;
+  padding: 13px 16px;
+  border-top: 1px solid var(--line);
+}
+
+.pager-right {
+  grid-column: 3;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-self: end;
+}
+
+.page-num {
+  font-size: 13px;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+/* search sits in the middle of the pager */
+.pager-search {
+  grid-column: 2;
+  justify-self: center;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: min(270px, 100%);
+  height: 36px;
+  padding: 0 5px;
+  border: 1px solid #DCD9EA;
+  border-radius: 999px;
+  background: #fff;
+  transition: border-color .16s ease, box-shadow .16s ease;
+}
+
+.pager-search:focus-within {
+  border-color: var(--brand-2);
+  box-shadow: 0 0 0 3px rgba(122, 80, 228, .14);
+}
+
+/* the magnifier is the button that actually runs the search */
+.pager-search .go {
+  width: 27px;
+  height: 27px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #8B86AE;
+  cursor: pointer;
+  transition: background .16s ease, color .16s ease;
+}
+
+.pager-search .go:hover {
+  background: #F2EFFC;
+  color: var(--brand);
+}
+
+.pager-search .go svg {
+  width: 15px;
+  height: 15px;
+  display: block;
+}
+
+.pager-search input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink);
+}
+
+.pager-search input::placeholder {
+  color: #9A95B8;
+}
+
+.pager-search .clear {
+  width: 25px;
+  height: 25px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: var(--head-bg);
+  color: var(--ink-2);
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.pager-search .clear:hover {
+  background: #EFECF9;
+  color: var(--ink);
+}
+
+/* --------------------------- filter drawer --------------------------- */
+
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: rgba(20, 6, 54, .38);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .22s ease, visibility .22s ease;
+}
+
+.scrim.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.drawer {
+  position: fixed;
+  z-index: 21;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 340px;
+  max-width: 88vw;
+  background: #fff;
+  border-left: 1px solid var(--line);
+  box-shadow: -18px 0 46px rgba(24, 10, 60, .16);
+  display: flex;
+  flex-direction: column;
+  translate: 100% 0;
+  transition: translate .26s cubic-bezier(.22, .7, .25, 1);
+}
+
+.drawer.open {
+  translate: 0 0;
+}
+
+.drawer-head {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+.drawer-head h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.close {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 9px;
+  background: var(--head-bg);
+  color: var(--ink-2);
+  font-size: 21px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.close:hover {
+  background: #EFECF9;
+  color: var(--ink);
+}
+
+.drawer-body {
+  flex: 1;
+  overflow: auto;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.drawer-foot {
+  flex: none;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--line);
+}
+
+.drawer-foot .btn.primary {
+  justify-content: center;
+}
+
+/* ------------------------------ fields ------------------------------- */
+
+.fld {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fld>span {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .02em;
+  color: var(--ink-2);
+}
+
+.fld input,
+.fld select {
+  height: 40px;
+  padding: 0 11px;
+  border: 1px solid #DCD9EA;
+  border-radius: 9px;
+  background: #fff;
+  font: inherit;
+  font-size: 13.5px;
+  color: var(--ink);
+  outline: 0;
+  transition: border-color .16s ease, box-shadow .16s ease;
+}
+
+.fld select {
+  cursor: pointer;
+}
+
+.fld input:focus,
+.fld select:focus {
+  border-color: var(--brand-2);
+  box-shadow: 0 0 0 3px rgba(122, 80, 228, .14);
+}
+
+.fld-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* --------------------------- small screens --------------------------- */
+
+@media (max-width: 860px) {
+  .pager {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .pager-search {
+    grid-column: 1;
+    width: 100%;
+  }
+
+  .pager-right {
+    grid-column: 1;
+    justify-self: stretch;
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 640px) {
+  .head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .head-actions .btn {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .scroll {
+    max-height: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .drawer,
+  .scrim {
+    transition: none;
+  }
+}

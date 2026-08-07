@@ -1,0 +1,36 @@
+<div class="head">
+  <h1>Welcome back, {{ user()?.name }}</h1>
+  <p>Here is what is happening across your devices today.</p>
+</div>
+
+<div class="stats">
+  <div class="card stat" *ngFor="let s of stats">
+    <div class="label">{{ s.label }}</div>
+    <div class="value">{{ s.value }}</div>
+    <div class="trend" [class.down]="s.down">{{ s.trend }}</div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Recent scans</h2>
+  <div class="scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Device</th>
+          <th>Time</th>
+          <th>Direction</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of recent">
+          <td>{{ row.name }}</td>
+          <td>{{ row.device }}</td>
+          <td>{{ row.time }}</td>
+          <td><span class="pill" [ngClass]="row.direction">{{ row.direction | uppercase }}</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

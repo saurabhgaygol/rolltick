@@ -1,0 +1,235 @@
+<!-- ============ page header ============ -->
+<div class="head">
+  <div>
+    <h1>Attendance</h1>
+    <p>Daily records pulled from the readers.</p>
+  </div>
+
+  <div class="head-actions">
+    <button class="btn ghost" type="button" (click)="filtersOpen = true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+        stroke-linejoin="round">
+        <path d="M4 6h16M7 12h10M10 18h4" />
+      </svg>
+      <span>Filters</span>
+      <em class="badge" *ngIf="activeChips.length">{{ activeChips.length }}</em>
+    </button>
+
+    <button class="btn primary" type="button" (click)="exportExcel()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+        stroke-linejoin="round">
+        <path d="M12 3v12" />
+        <path d="M7.5 10.5 12 15l4.5-4.5" />
+        <path d="M4 20h16" />
+      </svg>
+      <span>Download Excel</span>
+    </button>
+  </div>
+</div>
+
+<!-- ============ whatever is filtered right now, as removable chips ============ -->
+<div class="chips" *ngIf="activeChips.length">
+  <span class="chip" *ngFor="let c of activeChips">
+    <em>{{ c.label }}</em>{{ c.value }}
+    <button type="button" (click)="clearChip(c.key)" aria-label="Remove">&times;</button>
+  </span>
+  <button class="chip-clear" type="button" (click)="resetFilters()">Clear all</button>
+</div>
+
+<!-- ============ table ============ -->
+<section class="table-card">
+
+  <div class="table-top">
+    <span class="showing">
+      Showing {{ filtered.length ? pageStart + 1 : 0 }}&ndash;{{ pageEnd }} of {{ filtered.length }}
+    </span>
+
+    <label class="page-size">
+      Rows
+      <select [(ngModel)]="pageSize" (ngModelChange)="page = 1">
+        <option [ngValue]="25">25</option>
+        <option [ngValue]="50">50</option>
+        <option [ngValue]="100">100</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="scroll">
+    <table>
+      <thead>
+        <tr>
+          <th class="stick-l num">ID</th>
+          <th>Attendance Date</th>
+          <th>School Name</th>
+          <th>Branch Name</th>
+          <th>Student Name</th>
+          <th>GR No</th>
+          <th>Class / Division</th>
+          <th>UHF ID</th>
+          <th>IN Scanner ID</th>
+          <th>IN Scanner Location</th>
+          <th>IN Scanner Type</th>
+          <th>Entry Time</th>
+          <th>Entry Scan Status</th>
+          <th>OUT Scanner ID</th>
+          <th>OUT Scanner Location</th>
+          <th>OUT Scanner Type</th>
+          <th>Exit Time</th>
+          <th>Exit Scan Status</th>
+          <th>Parent Name</th>
+          <th>Parent Mobile No.</th>
+          <th>In SMS Status</th>
+          <th>In SMS Time</th>
+          <th>Out SMS Status</th>
+          <th>Out SMS Time</th>
+          <th class="stick-r">Action</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let r of paged">
+          <td class="stick-l num">{{ r.id }}</td>
+          <td>{{ r.date }}</td>
+          <td>{{ r.school }}</td>
+          <td>{{ r.branch }}</td>
+          <td class="strong">{{ r.student }}</td>
+          <td>{{ r.grNo }}</td>
+          <td>{{ r.classDiv }}</td>
+          <td class="mono">{{ r.uhfId }}</td>
+          <td class="mono">{{ r.inScannerId || '-' }}</td>
+          <td>{{ r.inScannerLocation }}</td>
+          <td>{{ r.inScannerType }}</td>
+          <td>{{ r.entryTime || '-' }}</td>
+          <td><span class="pill" [ngClass]="statusClass(r.entryStatus)">{{ r.entryStatus }}</span></td>
+          <td class="mono">{{ r.outScannerId || '-' }}</td>
+          <td>{{ r.outScannerLocation }}</td>
+          <td>{{ r.outScannerType }}</td>
+          <td>{{ r.exitTime || '-' }}</td>
+          <td><span class="pill" [ngClass]="statusClass(r.exitStatus)">{{ r.exitStatus }}</span></td>
+          <td>{{ r.parentName }}</td>
+          <td class="mono">{{ r.parentMobile }}</td>
+          <td><span class="pill" [ngClass]="statusClass(r.inSmsStatus)">{{ r.inSmsStatus }}</span></td>
+          <td>{{ r.inSmsTime || '-' }}</td>
+          <td><span class="pill" [ngClass]="statusClass(r.outSmsStatus)">{{ r.outSmsStatus }}</span></td>
+          <td>{{ r.outSmsTime || '-' }}</td>
+          <td class="stick-r">
+            <button class="icon" type="button" title="View">
+              <svg viewBox="0 0 24 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M1 8s4-7 11-7 11 7 11 7-4 7-11 7S1 8 1 8Z" />
+                <circle cx="12" cy="8" r="3" />
+              </svg>
+            </button>
+          </td>
+        </tr>
+
+        <tr *ngIf="!filtered.length">
+          <td class="no-rows" colspan="25">No records match these filters.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="pager">
+    <div class="pager-search">
+      <!-- nothing is searched until this button (or Enter) is used -->
+      <button class="go" type="button" (click)="applySearch()" aria-label="Search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"
+          stroke-linejoin="round">
+          <circle cx="11" cy="11" r="7" />
+          <path d="m20 20-3.5-3.5" />
+        </svg>
+      </button>
+
+      <input type="text" [(ngModel)]="searchInput" (keyup.enter)="applySearch()"
+        placeholder="Search name, GR no, UHF ID" />
+
+      <button class="clear" type="button" *ngIf="searchInput || filters.search" (click)="clearSearch()"
+        aria-label="Clear">&times;</button>
+    </div>
+
+    <div class="pager-right">
+      <button class="btn ghost" type="button" [disabled]="page === 1" (click)="page = page - 1">Previous</button>
+      <span class="page-num">Page {{ page }} of {{ totalPages }}</span>
+      <button class="btn ghost" type="button" [disabled]="page >= totalPages" (click)="page = page + 1">Next</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ filter drawer - only here when you ask for it ============ -->
+<div class="scrim" [class.show]="filtersOpen" (click)="filtersOpen = false"></div>
+
+<aside class="drawer" [class.open]="filtersOpen">
+  <header class="drawer-head">
+    <h2>Filters</h2>
+    <button class="close" type="button" (click)="filtersOpen = false" aria-label="Close">&times;</button>
+  </header>
+
+  <div class="drawer-body">
+    <label class="fld">
+      <span>School</span>
+      <select [(ngModel)]="filters.school" (ngModelChange)="onSchoolChange()">
+        <option value="">All schools</option>
+        <option *ngFor="let s of schools" [value]="s">{{ s }}</option>
+      </select>
+    </label>
+
+    <label class="fld">
+      <span>Branch</span>
+      <select [(ngModel)]="filters.branch">
+        <option value="">All branches</option>
+        <option *ngFor="let b of branchOptions" [value]="b">{{ b }}</option>
+      </select>
+    </label>
+
+    <label class="fld">
+      <span>Class / Division</span>
+      <select [(ngModel)]="filters.classDiv">
+        <option value="">All classes</option>
+        <option *ngFor="let c of classes" [value]="c">{{ c }}</option>
+      </select>
+    </label>
+
+    <div class="fld-row">
+      <label class="fld"><span>From</span><input type="date" [(ngModel)]="filters.from" /></label>
+      <label class="fld"><span>To</span><input type="date" [(ngModel)]="filters.to" /></label>
+    </div>
+
+    <label class="fld">
+      <span>Entry status</span>
+      <select [(ngModel)]="filters.entryStatus">
+        <option value="">Any</option>
+        <option value="Success">Success</option>
+        <option value="Failed">Failed</option>
+        <option value="Missed">Missed</option>
+      </select>
+    </label>
+
+    <label class="fld">
+      <span>Exit status</span>
+      <select [(ngModel)]="filters.exitStatus">
+        <option value="">Any</option>
+        <option value="Success">Success</option>
+        <option value="Failed">Failed</option>
+        <option value="Missed">Missed</option>
+      </select>
+    </label>
+
+    <label class="fld">
+      <span>SMS status</span>
+      <select [(ngModel)]="filters.smsStatus">
+        <option value="">Any</option>
+        <option value="Sent">Sent</option>
+        <option value="Pending">Pending</option>
+        <option value="Failed">Failed</option>
+      </select>
+    </label>
+  </div>
+
+  <footer class="drawer-foot">
+    <button class="btn ghost" type="button" (click)="resetFilters()">Reset</button>
+    <button class="btn primary" type="button" (click)="filtersOpen = false">
+      Show {{ filtered.length }} results
+    </button>
+  </footer>
+</aside>

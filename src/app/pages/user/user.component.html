@@ -1,0 +1,668 @@
+<!-- =================== LIST =================== -->
+<ng-container *ngIf="!openUser">
+    <div class="head">
+        <div>
+            <h1>User</h1>
+            <p>Create a user, open it to set screen access, and add its branches.</p>
+        </div>
+        <div class="head-actions">
+            <button class="btn ghost" type="button" (click)="exportExcel()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M12 3v12" />
+                    <path d="M7.5 10.5 12 15l4.5-4.5" />
+                    <path d="M4 20h16" />
+                </svg>
+                <span>Excel</span>
+            </button>
+            <button class="btn primary" type="button" (click)="openUserForm(null)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <path d="M12 5v14M5 12h14" />
+                </svg>
+                <span>Add User</span>
+            </button>
+        </div>
+    </div>
+
+    <section class="table-card">
+        <div class="table-top">
+            <span class="showing">
+                Showing {{ filtered.length ? pageStart + 1 : 0 }}&ndash;{{ pageEnd }} of {{ filtered.length }}
+            </span>
+            <span class="hint">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M12 11v5M12 8h.01" />
+                </svg>
+                Double-click a user to open it
+            </span>
+            <label class="page-size">Rows
+                <select [(ngModel)]="pageSize" (ngModelChange)="page = 1">
+                    <option [ngValue]="25">25</option>
+                    <option [ngValue]="50">50</option>
+                    <option [ngValue]="100">100</option>
+                </select>
+            </label>
+        </div>
+
+        <div class="table-wrap">
+            <div class="scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Reseller</th>
+                            <th>User Name</th>
+                            <th>User Branch</th>
+                            <th>User Id</th>
+                            <th>Password</th>
+                            <th>Country</th>
+                            <th>State</th>
+                            <th>City</th>
+                            <th>Zip Code</th>
+                            <th>Street 1</th>
+                            <th>Street 2</th>
+                            <th>Contact Person</th>
+                            <th>Mobile Number</th>
+                            <th>WhatsApp Number</th>
+                            <th>Help Desk Email</th>
+                            <th>Time Zone</th>
+                            <th>User Status</th>
+                            <th>Created Date</th>
+                            <th>Created User</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <tr *ngFor="let u of paged" [class.active]="u.id === activeId" (click)="activeId = u.id"
+                            (dblclick)="open(u)">
+                            <td>{{ u.reseller }}</td>
+                            <td>{{ u.name }}</td>
+                            <td>{{ u.ubranch || '-' }}</td>
+                            <td class="mono">{{ u.user }}</td>
+                            <td class="mono">{{ u.pass }}</td>
+                            <td>{{ u.country }}</td>
+                            <td>{{ u.state }}</td>
+                            <td>{{ u.city }}</td>
+                            <td class="mono">{{ u.zip || '-' }}</td>
+                            <td>{{ u.st1 || '-' }}</td>
+                            <td>{{ u.st2 || '-' }}</td>
+                            <td>{{ u.contact }}</td>
+                            <td class="mono">{{ u.mobile }}</td>
+                            <td class="mono">{{ u.wa ? '+91-' + u.wa : '-' }}</td>
+                            <td>{{ u.helpmail || '-' }}</td>
+                            <td>{{ u.tz }}</td>
+                            <td><span class="pill" [ngClass]="u.status === 'Active' ? 'yes' : 'no'">{{ u.status
+                                    }}</span></td>
+                            <td>{{ u.created }}</td>
+                            <td>{{ u.createdBy }}</td>
+                        </tr>
+                        <tr *ngIf="!filtered.length">
+                            <td class="no-rows" colspan="19">No users found.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="pager">
+            <div class="pager-left"></div>
+            <div class="pager-search">
+                <button class="go" type="button" (click)="applySearch()" aria-label="Search">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="7" />
+                        <path d="m20 20-3.5-3.5" />
+                    </svg>
+                </button>
+                <input type="text" [(ngModel)]="searchInput" (keyup.enter)="applySearch()"
+                    placeholder="Search reseller, user name, city" />
+                <button class="clear" type="button" *ngIf="searchInput || appliedSearch" (click)="clearSearch()"
+                    aria-label="Clear">&times;</button>
+            </div>
+            <div class="pager-right">
+                <button class="btn ghost" type="button" [disabled]="page === 1"
+                    (click)="page = page - 1">Previous</button>
+                <span class="page-num">Page {{ page }} of {{ totalPages }}</span>
+                <button class="btn ghost" type="button" [disabled]="page >= totalPages"
+                    (click)="page = page + 1">Next</button>
+            </div>
+        </div>
+    </section>
+</ng-container>
+
+<!-- =================== DETAIL =================== -->
+<ng-container *ngIf="openUser as u">
+    <button class="back-link" type="button" (click)="back()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round">
+            <path d="M15 5l-7 7 7 7" />
+        </svg>
+        All users
+    </button>
+
+    <div class="head">
+        <div>
+            <div class="crumb">{{ PROJECT }} &middot; User</div>
+            <h1>{{ u.name }}</h1>
+            <p>{{ u.reseller }} &middot; {{ u.user }} &middot; {{ u.city }}, {{ u.state }} &middot; {{ u.status }}</p>
+        </div>
+        <div class="head-actions">
+            <button class="btn ghost" type="button" (click)="openUserForm(u)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16v4Z" />
+                    <path d="M13.5 6.5 17.5 10.5" />
+                </svg>
+                <span>Edit details</span>
+            </button>
+            <button class="btn primary" type="button" (click)="openBranchForm(null)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <path d="M12 5v14M5 12h14" />
+                </svg>
+                <span>Add Branch</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <button type="button" [class.on]="tab === 'account'" (click)="tab = 'account'">My Account</button>
+        <button type="button" [class.on]="tab === 'access'" (click)="tab = 'access'">Screen Access</button>
+        <button type="button" [class.on]="tab === 'branches'" (click)="tab = 'branches'">Branches</button>
+    </div>
+
+    <!-- account -->
+    <div class="panel" *ngIf="tab === 'account'">
+        <div class="panel-head">
+            <div>
+                <h2>Account</h2>
+                <p>Details entered when the user was created.</p>
+            </div>
+        </div>
+        <div class="panel-body">
+            <table class="kv-table">
+                <tr *ngFor="let r of accountRows">
+                    <td class="kv-key">{{ r[0] }}</td>
+                    <td>{{ r[1] }}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- screen access -->
+    <div class="panel" *ngIf="tab === 'access'">
+        <div class="panel-head">
+            <div>
+                <h2>Screen Access</h2>
+                <p>Project &rarr; Module &rarr; Sub Module &rarr; Screen. Pick a level per screen.</p>
+            </div>
+        </div>
+        <div class="panel-body">
+            <div class="access-toolbar">
+                <button class="chip-btn" type="button" (click)="applyAll(1)">View only</button>
+                <button class="chip-btn" type="button" (click)="applyAll(3)">Full access</button>
+                <button class="chip-btn" type="button" (click)="applyAll(0)">No access</button>
+                <span class="perm-count">{{ accessCount(u.perms, null) }}</span>
+            </div>
+            <ng-container *ngTemplateOutlet="accessGrid"></ng-container>
+        </div>
+    </div>
+
+    <!-- branches -->
+    <div class="panel" *ngIf="tab === 'branches'">
+        <div class="panel-head">
+            <div>
+                <h2>Branches <span class="count-badge">{{ u.branches.length }}</span></h2>
+                <p>A branch can only get what the user already has, never more.</p>
+            </div>
+        </div>
+        <div class="panel-body">
+            <div class="branch-list">
+                <div class="empty-box" *ngIf="!u.branches.length">
+                    No branches yet. Use <strong>Add Branch</strong> to create the first one.
+                </div>
+
+                <div class="branch-card" *ngFor="let b of u.branches">
+                    <div class="branch-top">
+                        <div>
+                            <h4>{{ b.name }}</h4>
+                            <p class="meta">
+                                {{ b.code }} &middot; {{ b.user }} &middot; {{ b.city }}, {{ b.state }}
+                                &middot; {{ b.contact }} &middot; {{ b.mobile }} &middot; {{ b.status }}
+                            </p>
+                        </div>
+                        <div class="mini-actions">
+                            <button class="mini" type="button" title="Edit" (click)="openBranchForm(b)">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16v4Z" />
+                                    <path d="M13.5 6.5 17.5 10.5" />
+                                </svg>
+                            </button>
+                            <button class="mini del" type="button" title="Delete" (click)="askDeleteBranch(b)">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M4 7h16" />
+                                    <path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                                    <path d="M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="tag-row">
+                        <span class="tag none" *ngIf="!grantedKeys(b.perms).length">No access yet</span>
+                        <span class="tag" *ngFor="let k of grantedKeys(b.perms).slice(0, 6)">
+                            {{ screenName(k) }} <em>{{ LEVELS[lvl(b.perms, k)] }}</em>
+                        </span>
+                        <span class="tag none" *ngIf="grantedKeys(b.perms).length > 6">
+                            +{{ grantedKeys(b.perms).length - 6 }} more
+                        </span>
+                    </div>
+
+                    <p class="meta" style="margin-top:9px">
+                        {{ grantedKeys(b.perms).length }} of {{ granted(u.perms) }} screens the user allows
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</ng-container>
+
+<!-- =================== the access grid, shared =================== -->
+<ng-template #accessGrid>
+    <div class="access-grid">
+
+        <!-- project -->
+        <div class="col">
+            <div class="col-head">Project</div>
+            <div class="col-list">
+                <div class="node sel">
+                    <button class="nbox" type="button" (click)="toggleProject()"
+                        [class.on]="boxState(granted(perms), allScreens.length) === 2"
+                        [class.part]="boxState(granted(perms), allScreens.length) === 1" aria-label="Toggle">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M5 12.5 10 17.5 19 7" />
+                        </svg>
+                    </button>
+                    <span class="n-name">{{ PROJECT }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- modules -->
+        <div class="col">
+            <div class="col-head">Module</div>
+            <div class="col-list">
+                <div class="node" *ngFor="let m of modules" [class.sel]="m.key === pickMod"
+                    [class.off]="modTally(perms, m) === 0" (click)="chooseModule(m)">
+                    <button class="nbox" type="button" (click)="toggleModule(m); $event.stopPropagation()"
+                        [class.on]="boxState(modTally(perms, m), modTotal(m)) === 2"
+                        [class.part]="boxState(modTally(perms, m), modTotal(m)) === 1" aria-label="Toggle">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M5 12.5 10 17.5 19 7" />
+                        </svg>
+                    </button>
+                    <span class="n-name">{{ m.name }}</span>
+                    <span class="n-tally">{{ modTally(perms, m) }}/{{ modTotal(m) }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- sub modules -->
+        <div class="col">
+            <div class="col-head">Sub Module</div>
+            <div class="col-list">
+                <div class="node" *ngFor="let s of currentModule.subs" [class.sel]="s.key === pickSub"
+                    [class.off]="subTally(perms, s) === 0" (click)="chooseSub(s)">
+                    <button class="nbox" type="button" (click)="toggleSub(s); $event.stopPropagation()"
+                        [class.on]="boxState(subTally(perms, s), s.screens.length) === 2"
+                        [class.part]="boxState(subTally(perms, s), s.screens.length) === 1" aria-label="Toggle">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M5 12.5 10 17.5 19 7" />
+                        </svg>
+                    </button>
+                    <span class="n-name">{{ s.name }}</span>
+                    <span class="n-tally">{{ subTally(perms, s) }}/{{ s.screens.length }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- screens -->
+        <div class="col">
+            <div class="col-head">Screen &mdash; {{ currentModule.name }} / {{ currentSub.name }}</div>
+            <div class="col-list">
+                <table class="screen-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th *ngFor="let l of LEVELS; let i = index">
+                                <button class="col-pick" type="button" (click)="pickColumn(i)">{{ l }}</button>
+                            </th>
+                            <th>Customize</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let sc of currentSub.screens">
+                            <td>{{ sc.name }}</td>
+                            <td *ngFor="let l of LEVELS; let i = index">
+                                <button class="lvl" type="button" [class.on]="lvl(perms, sc.key) === i"
+                                    [class.zero]="lvl(perms, sc.key) === i && i === 0"
+                                    [disabled]="i > maxLevel(cap, sc.key)" (click)="pickLevel(sc.key, i)"
+                                    [attr.aria-label]="l">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+                                        stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M5 12.5 10 17.5 19 7" />
+                                    </svg>
+                                </button>
+                            </td>
+                            <td>
+                                <button class="cust" type="button" [class.on]="isCustom(perms, sc.key)"
+                                    [disabled]="!lvl(perms, sc.key)" (click)="toggleCustom(perms, sc.key)"
+                                    title="Customize this screen">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
+                                        stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16v4Z" />
+                                        <path d="M13.5 6.5 17.5 10.5" />
+                                    </svg>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</ng-template>
+
+<!-- =================== user form =================== -->
+<div class="modal-scrim" [class.show]="userFormOpen"
+    (click)="$event.target === $event.currentTarget && (userFormOpen = false)">
+    <div class="modal wide" role="dialog" aria-modal="true">
+        <header class="modal-head">
+            <div>
+                <h2>{{ editingUserId ? 'Edit User' : 'Add User' }}</h2>
+                <p>{{ editingUserId ? uForm.name + ' \u00b7 ' + uForm.user : 'Fill in the details below.' }}</p>
+            </div>
+            <button class="close" type="button" (click)="userFormOpen = false" aria-label="Close">&times;</button>
+        </header>
+
+        <div class="modal-body">
+            <div class="form-section">
+                <h3>My Account</h3>
+                <div class="grid-3">
+                    <label class="fld" [class.error]="errors['reseller']">
+                        <span>Reseller *</span>
+                        <select [(ngModel)]="uForm.reseller">
+                            <option value="">Select reseller</option>
+                            <option *ngFor="let r of resellers" [value]="r">{{ r }}</option>
+                        </select>
+                        <small *ngIf="errors['reseller']">Required</small>
+                    </label>
+                    <label class="fld" [class.error]="errors['name']">
+                        <span>User Name *</span>
+                        <input type="text" [(ngModel)]="uForm.name" placeholder="Beacon High School">
+                        <small *ngIf="errors['name']">Required</small>
+                    </label>
+                    <label class="fld">
+                        <span>User Branch</span>
+                        <input type="text" [(ngModel)]="uForm.ubranch" placeholder="Head Office">
+                    </label>
+                </div>
+
+                <div class="grid-3" style="margin-top:14px">
+                    <label class="fld" [class.error]="errors['user']">
+                        <span>User Id *</span>
+                        <input type="text" [(ngModel)]="uForm.user" placeholder="beaconhigh@smartbus.com">
+                        <small *ngIf="errors['user']">Required</small>
+                    </label>
+                    <label class="fld" [class.error]="errors['pass']">
+                        <span>Password *</span>
+                        <input type="password" [(ngModel)]="uForm.pass" placeholder="Minimum 6 characters">
+                        <small *ngIf="errors['pass']">Minimum 6 characters</small>
+                    </label>
+                    <label class="fld">
+                        <span>User Status</span>
+                        <select [(ngModel)]="uForm.status">
+                            <option>Active</option>
+                            <option>Inactive</option>
+                        </select>
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Location</h3>
+                <div class="grid-3">
+                    <label class="fld"><span>Country</span>
+                        <select [(ngModel)]="uForm.country">
+                            <option>India</option>
+                        </select></label>
+                    <label class="fld" [class.error]="errors['state']">
+                        <span>State *</span>
+                        <input type="text" [(ngModel)]="uForm.state" placeholder="Maharashtra">
+                        <small *ngIf="errors['state']">Required</small>
+                    </label>
+                    <label class="fld" [class.error]="errors['city']">
+                        <span>City *</span>
+                        <input type="text" [(ngModel)]="uForm.city" placeholder="Pune">
+                        <small *ngIf="errors['city']">Required</small>
+                    </label>
+                </div>
+                <div class="grid-3" style="margin-top:14px">
+                    <label class="fld"><span>Zip Code</span><input type="text" [(ngModel)]="uForm.zip"
+                            placeholder="411014"></label>
+                    <label class="fld"><span>Street 1</span><input type="text" [(ngModel)]="uForm.st1"
+                            placeholder="Street, area"></label>
+                    <label class="fld"><span>Street 2</span><input type="text" [(ngModel)]="uForm.st2"
+                            placeholder="Landmark"></label>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Contact</h3>
+                <div class="grid-3">
+                    <label class="fld" [class.error]="errors['contact']">
+                        <span>Contact Person *</span>
+                        <input type="text" [(ngModel)]="uForm.contact" placeholder="Full name">
+                        <small *ngIf="errors['contact']">Required</small>
+                    </label>
+                    <label class="fld" [class.error]="errors['mobile']">
+                        <span>Mobile Number *</span>
+                        <input type="tel" [(ngModel)]="uForm.mobile" maxlength="10" placeholder="10 digits">
+                        <small *ngIf="errors['mobile']">Enter 10 digits</small>
+                    </label>
+                    <label class="fld" [class.error]="errors['wa']">
+                        <span>WhatsApp Number</span>
+                        <input type="tel" [(ngModel)]="uForm.wa" maxlength="10" placeholder="10 digits">
+                        <small *ngIf="errors['wa']">Enter 10 digits</small>
+                    </label>
+                </div>
+                <div class="grid-3" style="margin-top:14px">
+                    <label class="fld" [class.error]="errors['helpmail']">
+                        <span>Help Desk Email</span>
+                        <input type="email" [(ngModel)]="uForm.helpmail" placeholder="support@myschoolride.com">
+                        <small *ngIf="errors['helpmail']">Enter a valid email</small>
+                    </label>
+                    <label class="fld"><span>Help Desk Telephone</span>
+                        <input type="text" [(ngModel)]="uForm.helptel" placeholder="Optional"></label>
+                    <label class="fld"><span>Time Zone</span>
+                        <select [(ngModel)]="uForm.tz">
+                            <option>Asia/Kolkata</option>
+                            <option>Asia/Dubai</option>
+                            <option>UTC</option>
+                        </select></label>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Screen Access</h3>
+                <div class="access-toolbar">
+                    <button class="chip-btn" type="button" (click)="applyAll(1)">View only</button>
+                    <button class="chip-btn" type="button" (click)="applyAll(3)">Full access</button>
+                    <button class="chip-btn" type="button" (click)="applyAll(0)">No access</button>
+                    <span class="perm-count">{{ accessCount(formPerms, null) }}</span>
+                </div>
+                <ng-container *ngIf="userFormOpen"><ng-container
+                        *ngTemplateOutlet="accessGrid"></ng-container></ng-container>
+            </div>
+        </div>
+
+        <footer class="modal-foot">
+            <button class="btn danger-soft" type="button" *ngIf="editingUserId" (click)="askDeleteUser()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M4 7h16" />
+                    <path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                    <path d="M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12" />
+                    <path d="M10 11v6M14 11v6" />
+                </svg>
+                <span>Delete</span>
+            </button>
+            <button class="btn ghost" type="button" (click)="userFormOpen = false">Cancel</button>
+            <button class="btn primary" type="button" (click)="saveUser()">
+                {{ editingUserId ? 'Save changes' : 'Save User' }}
+            </button>
+        </footer>
+    </div>
+</div>
+
+<!-- =================== branch form =================== -->
+<div class="modal-scrim" [class.show]="branchFormOpen"
+    (click)="$event.target === $event.currentTarget && (branchFormOpen = false)">
+    <div class="modal wide" role="dialog" aria-modal="true">
+        <header class="modal-head">
+            <div>
+                <h2>{{ editingBranchId ? 'Edit Branch' : 'Add Branch' }}</h2>
+                <p *ngIf="openUser">Under {{ openUser.name }} &middot; {{ openUser.user }}</p>
+            </div>
+            <button class="close" type="button" (click)="branchFormOpen = false" aria-label="Close">&times;</button>
+        </header>
+
+        <div class="modal-body">
+            <div class="form-section">
+                <h3>Branch</h3>
+                <div class="grid-3">
+                    <label class="fld" [class.error]="errors['name']">
+                        <span>Branch Name *</span>
+                        <input type="text" [(ngModel)]="bForm.name" placeholder="Kharadi">
+                        <small *ngIf="errors['name']">Required</small>
+                    </label>
+                    <label class="fld" [class.error]="errors['code']">
+                        <span>Branch Code *</span>
+                        <input type="text" [(ngModel)]="bForm.code" placeholder="BHS-KHR">
+                        <small *ngIf="errors['code']">Required</small>
+                    </label>
+                    <label class="fld" [class.error]="errors['user']">
+                        <span>User Id *</span>
+                        <input type="text" [(ngModel)]="bForm.user" placeholder="kharadi@smartbus.com">
+                        <small *ngIf="errors['user']">Required</small>
+                    </label>
+                </div>
+                <div class="grid-3" style="margin-top:14px">
+                    <label class="fld" [class.error]="errors['state']">
+                        <span>State *</span>
+                        <input type="text" [(ngModel)]="bForm.state" placeholder="Maharashtra">
+                        <small *ngIf="errors['state']">Required</small>
+                    </label>
+                    <label class="fld" [class.error]="errors['city']">
+                        <span>City *</span>
+                        <input type="text" [(ngModel)]="bForm.city" placeholder="Pune">
+                        <small *ngIf="errors['city']">Required</small>
+                    </label>
+                    <label class="fld"><span>User Status</span>
+                        <select [(ngModel)]="bForm.status">
+                            <option>Active</option>
+                            <option>Inactive</option>
+                        </select></label>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Contact</h3>
+                <div class="grid-3">
+                    <label class="fld" [class.error]="errors['contact']">
+                        <span>Contact Person *</span>
+                        <input type="text" [(ngModel)]="bForm.contact" placeholder="Full name">
+                        <small *ngIf="errors['contact']">Required</small>
+                    </label>
+                    <label class="fld" [class.error]="errors['mobile']">
+                        <span>Mobile Number *</span>
+                        <input type="tel" [(ngModel)]="bForm.mobile" maxlength="10" placeholder="10 digits">
+                        <small *ngIf="errors['mobile']">Enter 10 digits</small>
+                    </label>
+                    <label class="fld"><span>Address</span>
+                        <input type="text" [(ngModel)]="bForm.address" placeholder="Street, area"></label>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Screen Access</h3>
+
+                <div class="warn-note">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="9" />
+                        <path d="M12 8v5M12 16h.01" />
+                    </svg>
+                    <span>Greyed out levels are higher than what the parent user itself has.
+                        A branch can match the parent user or have less &mdash; never more.</span>
+                </div>
+
+                <div class="access-toolbar">
+                    <button class="chip-btn" type="button" (click)="sameAsUser()">Same as user</button>
+                    <button class="chip-btn" type="button" (click)="applyAll(1)">View only</button>
+                    <button class="chip-btn" type="button" (click)="applyAll(0)">No access</button>
+                    <span class="perm-count">{{ accessCount(formPerms, formCap) }}</span>
+                </div>
+                <ng-container *ngIf="branchFormOpen"><ng-container
+                        *ngTemplateOutlet="accessGrid"></ng-container></ng-container>
+            </div>
+        </div>
+
+        <footer class="modal-foot">
+            <button class="btn danger-soft" type="button" *ngIf="editingBranchId"
+                (click)="askDeleteBranch(deletingBranchForForm!)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M4 7h16" />
+                    <path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                    <path d="M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12" />
+                    <path d="M10 11v6M14 11v6" />
+                </svg>
+                <span>Delete</span>
+            </button>
+            <button class="btn ghost" type="button" (click)="branchFormOpen = false">Cancel</button>
+            <button class="btn primary" type="button" (click)="saveBranch()">
+                {{ editingBranchId ? 'Save changes' : 'Save Branch' }}
+            </button>
+        </footer>
+    </div>
+</div>
+
+<!-- =================== delete confirm =================== -->
+<div class="modal-scrim" [class.show]="deleteOpen"
+    (click)="$event.target === $event.currentTarget && (deleteOpen = false)">
+    <div class="modal small" role="dialog" aria-modal="true">
+        <header class="modal-head">
+            <h2>{{ deleteKind === 'user' ? 'Delete user' : 'Delete branch' }}</h2>
+        </header>
+        <div class="modal-body">
+            <p *ngIf="deleteKind === 'user' && deletingUser as d">
+                Remove <strong>{{ d.name }}</strong><span *ngIf="d.branches.length"> and its {{ d.branches.length }}
+                    branch(es)</span>?<br>
+                This cannot be undone.
+            </p>
+            <p *ngIf="deleteKind === 'branch' && deletingBranch as d">
+                Remove <strong>{{ d.name }}</strong>?<br>This cannot be undone.
+            </p>
+        </div>
+        <footer class="modal-foot">
+            <button class="btn ghost" type="button" (click)="deleteOpen = false">Cancel</button>
+            <button class="btn danger" type="button" (click)="confirmDelete()">Delete</button>
+        </footer>
+    </div>
+</div>
