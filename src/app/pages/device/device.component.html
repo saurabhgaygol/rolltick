@@ -1,0 +1,554 @@
+<!-- ============ page header ============ -->
+<div class="head">
+    <div>
+        <h1>Device</h1>
+        <p>Add, edit and remove devices installed at each user branch.</p>
+    </div>
+
+    <div class="head-actions">
+        <button class="btn ghost" type="button" (click)="filtersOpen = true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M4 6h16M7 12h10M10 18h4" />
+            </svg>
+            <span>Filters</span>
+            <em class="badge" *ngIf="activeChips.length">{{ activeChips.length }}</em>
+        </button>
+
+        <button class="btn ghost" type="button" (click)="exportExcel()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M12 3v12" />
+                <path d="M7.5 10.5 12 15l4.5-4.5" />
+                <path d="M4 20h16" />
+            </svg>
+            <span>Excel</span>
+        </button>
+
+        <button class="btn primary" type="button" (click)="openForm(null)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <path d="M12 5v14M5 12h14" />
+            </svg>
+            <span>Add Device</span>
+        </button>
+    </div>
+</div>
+
+<!-- ============ active filters ============ -->
+<div class="chips" *ngIf="activeChips.length">
+    <span class="chip" *ngFor="let c of activeChips">
+        <em>{{ c.label }}</em>{{ c.value }}
+        <button type="button" (click)="clearChip(c.key)" aria-label="Remove">&times;</button>
+    </span>
+    <button class="chip-clear" type="button" (click)="resetFilters()">Clear all</button>
+</div>
+
+<!-- ============ table ============ -->
+<section class="table-card">
+
+    <div class="table-top">
+        <span class="showing">
+            Showing {{ filtered.length ? pageStart + 1 : 0 }}&ndash;{{ pageEnd }} of {{ filtered.length }}
+        </span>
+
+        <span class="hint">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"
+                stroke-linejoin="round">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 11v5M12 8h.01" />
+            </svg>
+            Double-click a row to edit it
+        </span>
+
+        <label class="page-size">
+            Rows
+            <select [(ngModel)]="pageSize" (ngModelChange)="page = 1">
+                <option [ngValue]="25">25</option>
+                <option [ngValue]="50">50</option>
+                <option [ngValue]="100">100</option>
+            </select>
+        </label>
+    </div>
+
+    <div class="table-wrap">
+        <div class="scroll">
+            <table>
+                <thead>
+                    <tr>
+                        <th>User Name</th>
+                        <th>User Branch</th>
+                        <th>Device Name</th>
+                        <th>Device Type</th>
+                        <th>Device Location</th>
+                        <th>Device EMI No</th>
+                        <th>Device Connectivity</th>
+                        <th>Device SIM No</th>
+                        <th>Created Date</th>
+                        <th>Created User</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr *ngFor="let r of paged" [class.active]="r.id === activeId" (click)="activeId = r.id"
+                        (dblclick)="openForm(r.id)">
+                        <td>{{ r.user }}</td>
+                        <td>{{ r.branch }}</td>
+                        <td>{{ r.name }}</td>
+                        <td>
+                            <span class="type-pill" [ngClass]="typeClass(r.type)">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <ng-container [ngSwitch]="typeClass(r.type)">
+                                        <ng-container *ngSwitchCase="'rfid'">
+                                            <rect x="7" y="7" width="10" height="10" rx="2" />
+                                            <path d="M10 3v3M14 3v3M10 18v3M14 18v3M3 10h3M3 14h3M18 10h3M18 14h3" />
+                                        </ng-container>
+                                        <ng-container *ngSwitchCase="'face'">
+                                            <rect x="4" y="4" width="16" height="16" rx="4" />
+                                            <circle cx="12" cy="10" r="2.4" />
+                                            <path d="M8 17a4 4 0 0 1 8 0" />
+                                        </ng-container>
+                                        <ng-container *ngSwitchCase="'dashcam'">
+                                            <rect x="2.5" y="6.5" width="13" height="11" rx="2.5" />
+                                            <path d="m15.5 11 6-3.5v9L15.5 13" />
+                                        </ng-container>
+                                        <ng-container *ngSwitchCase="'gps'">
+                                            <path d="M12 21s7-6.3 7-11a7 7 0 1 0-14 0c0 4.7 7 11 7 11Z" />
+                                            <circle cx="12" cy="10" r="2.6" />
+                                        </ng-container>
+                                        <ng-container *ngSwitchDefault>
+                                            <circle cx="12" cy="12" r="8" />
+                                        </ng-container>
+                                    </ng-container>
+                                </svg>
+                                {{ r.type }}
+                            </span>
+                        </td>
+                        <td>{{ r.loc }}</td>
+                        <td class="mono">{{ r.emi }}</td>
+                        <td><span class="conn-pill" [class.off]="r.conn === 'Offline'">{{ r.conn }}</span></td>
+                        <td class="mono">{{ r.sim || '-' }}</td>
+                        <td>{{ r.created }}</td>
+                        <td>{{ r.cuser }}</td>
+                    </tr>
+
+                    <tr *ngIf="!filtered.length">
+                        <td class="no-rows" colspan="10">No devices match these filters.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="pager">
+        <div class="pager-left">
+            <button class="btn ghost" type="button" (click)="openUpload()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M12 16V4" />
+                    <path d="M7.5 8.5 12 4l4.5 4.5" />
+                    <path d="M4 20h16" />
+                </svg>
+                <span>Upload Excel</span>
+            </button>
+
+            <button class="btn danger-soft" type="button" (click)="openBulk()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M4 7h16" />
+                    <path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                    <path d="M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12" />
+                </svg>
+                <span>Bulk delete</span>
+            </button>
+        </div>
+
+        <div class="pager-search">
+            <button class="go" type="button" (click)="applySearch()" aria-label="Search">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="7" />
+                    <path d="m20 20-3.5-3.5" />
+                </svg>
+            </button>
+
+            <input type="text" [(ngModel)]="searchInput" (keyup.enter)="applySearch()"
+                placeholder="Search device, EMI, SIM" />
+
+            <button class="clear" type="button" *ngIf="searchInput || appliedSearch" (click)="clearSearch()"
+                aria-label="Clear">&times;</button>
+        </div>
+
+        <div class="pager-right">
+            <button class="btn ghost" type="button" [disabled]="page === 1" (click)="page = page - 1">Previous</button>
+            <span class="page-num">Page {{ page }} of {{ totalPages }}</span>
+            <button class="btn ghost" type="button" [disabled]="page >= totalPages"
+                (click)="page = page + 1">Next</button>
+        </div>
+    </div>
+</section>
+
+<!-- ============ filter drawer ============ -->
+<div class="scrim" [class.show]="filtersOpen" (click)="filtersOpen = false"></div>
+
+<aside class="drawer" [class.open]="filtersOpen">
+    <header class="drawer-head">
+        <h2>Filters</h2>
+        <button class="close" type="button" (click)="filtersOpen = false" aria-label="Close">&times;</button>
+    </header>
+
+    <div class="drawer-body">
+        <label class="fld">
+            <span>User Name</span>
+            <select [(ngModel)]="filters.user" (ngModelChange)="onFilterUserChange()">
+                <option value="">All users</option>
+                <option *ngFor="let u of userNames" [value]="u">{{ u }}</option>
+            </select>
+        </label>
+
+        <label class="fld">
+            <span>User Branch</span>
+            <select [(ngModel)]="filters.branch">
+                <option value="">All branches</option>
+                <option *ngFor="let b of filterBranches" [value]="b">{{ b }}</option>
+            </select>
+        </label>
+
+        <label class="fld">
+            <span>Device Type</span>
+            <select [(ngModel)]="filters.type">
+                <option value="">All types</option>
+                <option *ngFor="let t of types" [value]="t">{{ t }}</option>
+            </select>
+        </label>
+
+        <label class="fld">
+            <span>Device Location</span>
+            <select [(ngModel)]="filters.loc">
+                <option value="">All locations</option>
+                <option *ngFor="let l of locations" [value]="l">{{ l }}</option>
+            </select>
+        </label>
+
+        <label class="fld">
+            <span>Device Connectivity</span>
+            <select [(ngModel)]="filters.conn">
+                <option value="">All connectivity</option>
+                <option *ngFor="let c of connections" [value]="c">{{ c }}</option>
+            </select>
+        </label>
+
+        <div class="fld-row">
+            <label class="fld"><span>Created From</span><input type="date" [(ngModel)]="filters.from" /></label>
+            <label class="fld"><span>Created To</span><input type="date" [(ngModel)]="filters.to" /></label>
+        </div>
+
+        <label class="fld">
+            <span>Created User</span>
+            <select [(ngModel)]="filters.cuser">
+                <option value="">Anyone</option>
+                <option *ngFor="let c of createdUsers" [value]="c">{{ c }}</option>
+            </select>
+        </label>
+    </div>
+
+    <footer class="drawer-foot">
+        <button class="btn ghost" type="button" (click)="resetFilters()">Reset</button>
+        <button class="btn primary" type="button" (click)="filtersOpen = false">
+            Show {{ filtered.length }} results
+        </button>
+    </footer>
+</aside>
+
+<!-- ============ add / edit ============ -->
+<div class="modal-scrim" [class.show]="formOpen" (click)="$event.target === $event.currentTarget && (formOpen = false)">
+    <div class="modal mid" role="dialog" aria-modal="true">
+        <header class="modal-head">
+            <div>
+                <h2>{{ formTitle }}</h2>
+                <p>{{ formSub }}</p>
+            </div>
+            <button class="close" type="button" (click)="formOpen = false" aria-label="Close">&times;</button>
+        </header>
+
+        <div class="modal-body">
+            <div class="form-section">
+                <h3>Owner</h3>
+                <div class="grid-2">
+                    <label class="fld" [class.error]="errors['user']">
+                        <span>User Name *</span>
+                        <select [(ngModel)]="form.user" (ngModelChange)="onFormUserChange()">
+                            <option value="">Select user</option>
+                            <option *ngFor="let u of userNames" [value]="u">{{ u }}</option>
+                        </select>
+                        <small *ngIf="errors['user']">Required</small>
+                    </label>
+
+                    <label class="fld" [class.error]="errors['branch']">
+                        <span>User Branch *</span>
+                        <select [(ngModel)]="form.branch">
+                            <option value="">Select branch</option>
+                            <option *ngFor="let b of formBranches" [value]="b">{{ b }}</option>
+                        </select>
+                        <small *ngIf="errors['branch']">Required</small>
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Device</h3>
+                <div class="grid-2">
+                    <label class="fld" [class.error]="errors['name']">
+                        <span>Device Name *</span>
+                        <input type="text" [(ngModel)]="form.name" placeholder="Main Gate Reader">
+                        <small *ngIf="errors['name']">Required</small>
+                    </label>
+
+                    <label class="fld" [class.error]="errors['type']">
+                        <span>Device Type *</span>
+                        <select [(ngModel)]="form.type">
+                            <option value="">Select type</option>
+                            <option *ngFor="let t of types" [value]="t">{{ t }}</option>
+                        </select>
+                        <small *ngIf="errors['type']">Required</small>
+                    </label>
+                </div>
+
+                <div style="margin-top:14px">
+                    <label class="fld" [class.error]="errors['loc']">
+                        <span>Device Location *</span>
+                        <input type="text" [(ngModel)]="form.loc" list="locList" placeholder="Main Gate">
+                        <small *ngIf="errors['loc']">Required</small>
+                    </label>
+                    <datalist id="locList">
+                        <option *ngFor="let l of locations" [value]="l"></option>
+                    </datalist>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Identifiers</h3>
+                <div class="grid-3">
+                    <label class="fld" [class.error]="errors['emi']">
+                        <span>Device EMI No *</span>
+                        <input type="text" [(ngModel)]="form.emi" maxlength="15" placeholder="15 digits">
+                        <small *ngIf="errors['emi']">{{ emiError }}</small>
+                    </label>
+
+                    <label class="fld" [class.error]="errors['conn']">
+                        <span>Device Connectivity *</span>
+                        <select [(ngModel)]="form.conn" (ngModelChange)="onFormConnChange()">
+                            <option value="">Select connectivity</option>
+                            <option *ngFor="let c of connections" [value]="c">{{ c }}</option>
+                        </select>
+                        <small *ngIf="errors['conn']">Required</small>
+                    </label>
+
+                    <label class="fld" [class.error]="errors['sim']">
+                        <span>Device SIM No</span>
+                        <input type="text" [(ngModel)]="form.sim" maxlength="20" [disabled]="!needsSim(form.conn)"
+                            [placeholder]="needsSim(form.conn) ? '19 or 20 digits' : 'Not needed for this connectivity'">
+                        <small *ngIf="errors['sim']">{{ simError }}</small>
+                    </label>
+                </div>
+
+                <div class="cols-note" style="margin-top:14px">
+                    <strong>Device EMI No</strong> must be unique across every device.
+                    <strong>Created Date</strong> and <strong>Created User</strong> are filled in by the system.
+                </div>
+            </div>
+        </div>
+
+        <footer class="modal-foot">
+            <button class="btn danger-soft" type="button" *ngIf="editingId" (click)="askDelete(editingId!)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M4 7h16" />
+                    <path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                    <path d="M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12" />
+                    <path d="M10 11v6M14 11v6" />
+                </svg>
+                <span>Delete</span>
+            </button>
+
+            <button class="btn ghost" type="button" (click)="formOpen = false">Cancel</button>
+            <button class="btn primary" type="button" (click)="saveForm()">
+                {{ editingId ? 'Save changes' : 'Save Device' }}
+            </button>
+        </footer>
+    </div>
+</div>
+
+<!-- ============ bulk upload ============ -->
+<div class="modal-scrim" [class.show]="uploadOpen"
+    (click)="$event.target === $event.currentTarget && (uploadOpen = false)">
+    <div class="modal mid" role="dialog" aria-modal="true">
+        <header class="modal-head">
+            <div>
+                <h2>Bulk upload devices</h2>
+                <p>Add many devices at once from a spreadsheet.</p>
+            </div>
+            <button class="close" type="button" (click)="uploadOpen = false" aria-label="Close">&times;</button>
+        </header>
+
+        <div class="modal-body">
+            <label class="drop" (dragover)="$event.preventDefault()" (drop)="onUploadDrop($event)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M12 16V4" />
+                    <path d="M7.5 8.5 12 4l4.5 4.5" />
+                    <path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" />
+                </svg>
+                <h4>Drop your file here, or click to browse</h4>
+                <p>.csv &middot; first row must be the column headers</p>
+                <input type="file" accept=".csv,.xlsx,.xls" (change)="onUploadFile($event)">
+            </label>
+
+            <div class="file-line" *ngIf="uploadMsg">
+                <span [class.ok]="uploadOk" [class.err]="!uploadOk">{{ uploadOk ? '&#10003;' : '&#9888;' }}</span>
+                <span>{{ uploadMsg }}</span>
+            </div>
+
+            <button class="btn ghost tmpl-btn" type="button" (click)="downloadTemplate()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M12 3v12" />
+                    <path d="M7.5 10.5 12 15l4.5-4.5" />
+                    <path d="M4 20h16" />
+                </svg>
+                <span>Download Excel template</span>
+            </button>
+
+            <div class="cols-note">
+                <strong>Columns, in this order:</strong><br>
+                <code>User Name, User Branch, Device Name, Device Type, Device Location,
+        Device EMI No, Device Connectivity, Device SIM No</code><br>
+                <strong>Created Date</strong> and <strong>Created User</strong> are not in the template &mdash;
+                the system fills them in on import. Rows with a duplicate EMI number are skipped.
+            </div>
+        </div>
+
+        <footer class="modal-foot">
+            <button class="btn ghost" type="button" (click)="uploadOpen = false">Cancel</button>
+            <button class="btn primary" type="button" [disabled]="!canImport" (click)="importRows()">Import</button>
+        </footer>
+    </div>
+</div>
+
+<!-- ============ bulk delete ============ -->
+<div class="modal-scrim" [class.show]="bulkOpen" (click)="$event.target === $event.currentTarget && (bulkOpen = false)">
+    <div class="modal mid" role="dialog" aria-modal="true">
+        <header class="modal-head">
+            <div>
+                <h2>Bulk delete devices</h2>
+                <p>Choose where to look, then upload the list of EMI numbers to remove.</p>
+            </div>
+            <button class="close" type="button" (click)="bulkOpen = false" aria-label="Close">&times;</button>
+        </header>
+
+        <div class="modal-body">
+            <div class="form-section">
+                <h3>1 &middot; Where</h3>
+                <div class="grid-2">
+                    <label class="fld">
+                        <span>User Name *</span>
+                        <select [(ngModel)]="bulkScope.user" (ngModelChange)="onBulkUserChange()">
+                            <option value="">Select user</option>
+                            <option *ngFor="let u of userNames" [value]="u">{{ u }}</option>
+                        </select>
+                    </label>
+
+                    <label class="fld">
+                        <span>User Branch</span>
+                        <select [(ngModel)]="bulkScope.branch" (ngModelChange)="resetBulkFile()">
+                            <option value="">All branches</option>
+                            <option *ngFor="let b of bulkBranches" [value]="b">{{ b }}</option>
+                        </select>
+                    </label>
+                </div>
+
+                <div style="margin-top:14px">
+                    <label class="fld">
+                        <span>Device Type</span>
+                        <select [(ngModel)]="bulkScope.type" (ngModelChange)="resetBulkFile()">
+                            <option value="">All types</option>
+                            <option *ngFor="let t of types" [value]="t">{{ t }}</option>
+                        </select>
+                    </label>
+                </div>
+
+                <div class="scope-line">{{ scopeLine }}</div>
+            </div>
+
+            <div class="form-section">
+                <h3>2 &middot; Template</h3>
+                <button class="btn ghost tmpl-btn" type="button" (click)="downloadDeleteTemplate()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M12 3v12" />
+                        <path d="M7.5 10.5 12 15l4.5-4.5" />
+                        <path d="M4 20h16" />
+                    </svg>
+                    <span>Download Excel template</span>
+                </button>
+                <div class="cols-note">
+                    Two columns only: <code>Device Name, Device EMI No</code>. Fill in the rows you want removed.
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>3 &middot; Upload</h3>
+                <label class="drop" (dragover)="$event.preventDefault()" (drop)="onBulkDrop($event)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M12 16V4" />
+                        <path d="M7.5 8.5 12 4l4.5 4.5" />
+                        <path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" />
+                    </svg>
+                    <h4>Drop the filled file here, or click to browse</h4>
+                    <p>.csv &middot; only devices inside the selection above are touched</p>
+                    <input type="file" accept=".csv,.xlsx,.xls" (change)="onBulkFile($event)">
+                </label>
+
+                <div class="file-line" *ngIf="bulkMsg">
+                    <span [class.ok]="bulkOk" [class.err]="!bulkOk">{{ bulkOk ? '&#10003;' : '&#9888;' }}</span>
+                    <span>{{ bulkMsg }}</span>
+                </div>
+            </div>
+
+            <div class="count-line" [class.zero]="!bulkTargets.length">{{ bulkCountLine }}</div>
+        </div>
+
+        <footer class="modal-foot">
+            <button class="btn ghost" type="button" (click)="bulkOpen = false">Cancel</button>
+            <button class="btn danger" type="button" [disabled]="!bulkTargets.length" (click)="startBulkDelete()">
+                {{ bulkTargets.length ? 'Delete ' + bulkTargets.length + ' devices' : 'Delete' }}
+            </button>
+        </footer>
+    </div>
+</div>
+
+<!-- ============ delete confirm ============ -->
+<div class="modal-scrim" [class.show]="deleteOpen"
+    (click)="$event.target === $event.currentTarget && (deleteOpen = false)">
+    <div class="modal small" role="dialog" aria-modal="true">
+        <header class="modal-head">
+            <h2>{{ deleteMany ? 'Delete devices' : 'Delete device' }}</h2>
+        </header>
+
+        <div class="modal-body">
+            <p *ngIf="deleteMany">
+                Remove <strong>{{ bulkTargets.length }}</strong> device(s) from {{ bulkScope.user }}?<br>
+                This cannot be undone.
+            </p>
+            <p *ngIf="!deleteMany && deletingRow as d">
+                Remove <strong>{{ d.name }}</strong> ({{ d.emi }})?<br>This cannot be undone.
+            </p>
+        </div>
+
+        <footer class="modal-foot">
+            <button class="btn ghost" type="button" (click)="deleteOpen = false">Cancel</button>
+            <button class="btn danger" type="button" (click)="confirmDelete()">Delete</button>
+        </footer>
+    </div>
+</div>

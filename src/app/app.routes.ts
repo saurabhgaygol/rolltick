@@ -8,6 +8,7 @@ import { AttendanceComponent } from './pages/attendance/attendance.component';
 import { SettingsComponent } from './pages/settings/settings.component';
 import { StudentComponent } from './pages/student/student.component';
 import { UserComponent } from './pages/user/user.component';
+import { DeviceComponent } from './pages/device/device.component';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'login' },
@@ -26,7 +27,8 @@ export const routes: Routes = [
       { path: 'attendance', component: AttendanceComponent },
       { path: 'settings', component: SettingsComponent },
       { path: 'settings/user', component: UserComponent },
-      { path: 'settings/student', component: StudentComponent }
+      { path: 'settings/student', component: StudentComponent },
+      { path: 'settings/device', component: DeviceComponent }
 
 
       // ADD NEW PAGES HERE, for example:

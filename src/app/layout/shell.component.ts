@@ -56,7 +56,7 @@ export class ShellComponent {
       children: [
         { label: 'Users', path: '/app/settings/user' },
         { label: 'Student', path: '/app/settings/student' },
-        { label: 'Scanners', path: '/app/settings/scanners' },
+        { label: 'Device', path: '/app/settings/device' },
         { label: 'Users', path: '/app/settings/users' },
         { label: 'Report', path: '/app/settings/report' },
       ],
